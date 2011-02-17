@@ -4,12 +4,13 @@ require 'google_directions'
 
 class GoogleDirections
   
-  def initialize(location_1, location_2)
-    @base_url = "http://maps.google.com/maps/api/directions/xml?key=#{GOOGLE_MAPS_API_KEY}&sensor=false&"
-    @location_1 = location_1
-    @location_2 = location_2
-    options = "origin=#{transcribe(@location_1)}&destination=#{transcribe(@location_2)}"
-    @xml_call = @base_url + options
+  def initialize(*locations, optimize)
+    @base_url = "http://maps.google.com/maps/api/directions/xml?sensor=false&"
+    @locations = locations
+    @optimize = optimize
+    @location_start = locations[0]
+    options = "origin=#{transcribe(@location_start)}&waypoints=optimize:#{transcribe(@optimize)}|" 
+    @xml_call = @base_url + options + waypoints(@locations)
     @status = find_status
   end
 
@@ -67,9 +68,18 @@ class GoogleDirections
     def transcribe(location)
       location.gsub(" ", "+")
     end
+    
+    def waypoints(location)
+		waypoint_options = "#{transcribe(location[1])}|"
+		location[1..-1-1].each do |loc|
+			waypoint_options += "#{transcribe(loc)}|"
+		end
+		waypoint_options += "#{transcribe(location.last)}"
+	end
 
     def get_url(url)
       Net::HTTP.get(::URI.parse(url))
     end
   
 end
+

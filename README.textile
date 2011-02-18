@@ -1,13 +1,13 @@
 h2. Usage
 
 Still needs testing.
-<pre>directions = GoogleDirections.new(origin, waypoint1, waypoint2, waypoint3, boolean)</pre>
-where _origin_ and _waypoint*_ are strings of addresses or places that Google can find an address for.  Example: "816 Meridian St., 37207" and boolean is true or false (if true the route will be optimized).
+<pre>directions = GoogleDirections.new(optimize, mode, origin, waypoint1, waypoint2, waypoint3...)</pre>
+where _origin_ and _waypoint*_ are strings of addresses or places that Google can find an address for (Example: "816 Meridian St., 37207") and _optimize_ is whether or not to optimize the route (string: true or false) and _mode_ is a string of the driving mode (driving/walking/bicycling).
 
 Get drive time or distance of whole trip
 <pre>
 drive_time_in_minutes = directions.drive_time_in_minutes
-distance_in_miles = directions.distance_in_miles
+distance_in_miles = directions.distance_in_km
 </pre>
 
 Get the XML Google returns with every turn, or the API call URL

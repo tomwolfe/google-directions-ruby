@@ -4,18 +4,16 @@ require 'google_directions'
 
 class GoogleDirections
   
-  def initialize(*locations, optimize)
-    @base_url = "http://maps.google.com/maps/api/directions/xml?sensor=false&"
-    @locations = locations
-    @optimize = optimize
-    @location_start = locations[0]
-    options = "origin=#{transcribe(@location_start)}&waypoints=optimize:#{transcribe(@optimize)}|" 
-    @xml_call = @base_url + options + waypoints(@locations)
+  def initialize(optimize, mode, *locations)
+    base_url = "http://maps.google.com/maps/api/directions/xml?sensor=false&units=metric&"
+    location_start = locations[0]
+    options = "origin=#{transcribe(location_start)}&mode=#{mode}&waypoints=optimize:#{optimize}|" 
+    @xml_call = base_url + options + waypoints(locations)
     @status = find_status
   end
 
   # an example URL to be generated
-  #http://maps.google.com/maps/api/directions/xml?origin=St.+Louis,+MO&destination=Nashville,+TN&sensor=false&key=ABQIAAAAINgf4OmAIbIdWblvypOUhxSQ8yY-fgrep0oj4uKpavE300Q6ExQlxB7SCyrAg2evsxwAsak4D0Liiv
+  #http://maps.googleapis.com/maps/api/directions/xml?origin=Adelaide,SA&destination=Adelaide,SA&waypoints=optimize:true|Barossa+Valley,SA|Clare,SA|Connawarra,SA|McLaren+Vale,SA&sensor=false
   
   def find_status
     doc = Nokogiri::XML(xml)
@@ -44,14 +42,13 @@ class GoogleDirections
     end
   end
 
-  def distance_in_miles
+  def distance_in_km
     if @status != "OK"
-      distance_in_miles = 0
+      distance_in_km = 0
     else
       doc = Nokogiri::XML(xml)
       meters = doc.css("distance value").last.text
-      distance_in_miles = (meters.to_f / 1610.22).round
-      distance_in_miles
+      distance_in_km = meters * 1000
     end
   end
   
@@ -70,7 +67,7 @@ class GoogleDirections
     end
     
     def waypoints(location)
-		waypoint_options = "#{transcribe(location[1])}|"
+		# ignore the starting location and for the last location do not add the trailing "|"
 		location[1..-1-1].each do |loc|
 			waypoint_options += "#{transcribe(loc)}|"
 		end

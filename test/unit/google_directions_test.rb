@@ -2,10 +2,6 @@ require 'test_helper'
 
 class GoogleDirectionsTest < Test::Unit::TestCase
 
-  def test_the_truth
-    assert true
-  end
-  
   def test_happy_case
     directions = GoogleDirections.new("121 Gordonsville Highway, 37030", "499 Gordonsville Highway, 38563")
     assert_equal(4, directions.distance_in_miles)

@@ -6,14 +6,13 @@ class GoogleDirections
   
   def initialize(optimize, mode, *locations)
     base_url = "http://maps.google.com/maps/api/directions/xml?sensor=false&units=metric&"
-    location_start = locations[0]
-    options = "origin=#{transcribe(location_start)}&mode=#{mode}&waypoints=optimize:#{optimize}|" 
+    options = "origin=#{transcribe(locations[0])}&mode=#{mode}&waypoints=optimize:#{optimize}|" 
     @xml_call = base_url + options + waypoints(locations)
     @status = find_status
   end
 
   # an example URL to be generated
-  #http://maps.googleapis.com/maps/api/directions/xml?origin=Adelaide,SA&destination=Adelaide,SA&waypoints=optimize:true|Barossa+Valley,SA|Clare,SA|Connawarra,SA|McLaren+Vale,SA&sensor=false
+  #http://maps.googleapis.com/maps/api/directions/xml?origin=Adelaide,SA&waypoints=optimize:true|Barossa+Valley,SA|Clare,SA|Connawarra,SA|McLaren+Vale,SA&sensor=false
   
   def find_status
     doc = Nokogiri::XML(xml)
@@ -37,7 +36,9 @@ class GoogleDirections
       drive_time = 0
     else
       doc = Nokogiri::XML(xml)
-      drive_time = doc.css("duration value").last.text
+      doc.css("duration value").each do |duration|
+      	drive_time += duration.text
+      end
       convert_to_minutes(drive_time)
     end
   end
@@ -47,8 +48,10 @@ class GoogleDirections
       distance_in_km = 0
     else
       doc = Nokogiri::XML(xml)
-      meters = doc.css("distance value").last.text
-      distance_in_km = meters * 1000
+      doc.css("distance value").each do |dist|
+      	meters += dist.text
+      end
+      distance_in_km = (meters / 1000).round
     end
   end
   
@@ -66,12 +69,12 @@ class GoogleDirections
       location.gsub(" ", "+")
     end
     
-    def waypoints(location)
+    def waypoints(locations)
 		# ignore the starting location and for the last location do not add the trailing "|"
-		location[1..-1-1].each do |loc|
-			waypoint_options += "#{transcribe(loc)}|"
+		locations[1..-1-1].each do |loc|
+			waypoint_options << "#{transcribe(loc)}|"
 		end
-		waypoint_options += "#{transcribe(location.last)}"
+		waypoint_options << "#{transcribe(location.last)}"
 	end
 
     def get_url(url)

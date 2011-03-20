@@ -5,7 +5,7 @@ require 'google_directions'
 class GoogleDirections
   
   def initialize(optimize, mode, *locations)
-    base_url = "http://maps.google.com/maps/api/directions/xml?sensor=false&units=metric&"
+    base_url = "http://maps.googleapis.com/maps/api/directions/xml?sensor=false&units=metric&"
     options = "origin=#{transcribe(locations[0])}&mode=#{mode}&waypoints=optimize:#{optimize}|" 
     @xml_call = base_url + options + waypoints(locations)
     @status = find_status
@@ -35,9 +35,10 @@ class GoogleDirections
     if @status != "OK"
       drive_time = 0
     else
+      drive_time = 0
       doc = Nokogiri::XML(xml)
       doc.css("duration value").each do |duration|
-      	drive_time += duration.text
+      	drive_time += duration.text.to_i
       end
       convert_to_minutes(drive_time)
     end
@@ -48,8 +49,9 @@ class GoogleDirections
       distance_in_km = 0
     else
       doc = Nokogiri::XML(xml)
+      meters = 0
       doc.css("distance value").each do |dist|
-      	meters += dist.text
+      	meters += dist.text.to_i
       end
       distance_in_km = (meters / 1000).round
     end
@@ -71,14 +73,15 @@ class GoogleDirections
     
     def waypoints(locations)
 		# ignore the starting location and for the last location do not add the trailing "|"
+		waypoint_options = ''
 		locations[1..-1-1].each do |loc|
-			waypoint_options << "#{transcribe(loc)}|"
+			waypoint_options += "#{transcribe(loc)}|"
 		end
-		waypoint_options << "#{transcribe(location.last)}"
+		waypoint_options += "#{transcribe(locations.last)}"
 	end
 
     def get_url(url)
-      Net::HTTP.get(::URI.parse(url))
+      Net::HTTP.get(::URI.parse(::URI.encode(url)))
     end
   
 end
